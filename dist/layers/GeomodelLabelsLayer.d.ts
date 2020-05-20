@@ -1,0 +1,33 @@
+import Vector2 from '@equinor/videx-vector2';
+import { CanvasLayer } from './base/CanvasLayer';
+import { GeomodelLayerLabelsOptions, OnUpdateEvent, OnRescaleEvent, OnMountEvent } from '../interfaces';
+import { SurfaceArea, SurfaceLine } from '../datautils';
+export declare class GeomodelLabelsLayer extends CanvasLayer {
+    defaultMargins: number;
+    defaultMinFontSize: number;
+    defaultMaxFontSize: number;
+    defaultTextColor: string;
+    defaultFont: string;
+    options: GeomodelLayerLabelsOptions;
+    rescaleEvent: OnRescaleEvent;
+    isLabelsOnLeftSide: boolean;
+    maxFontSizeInWorldCoordinates: number;
+    isXFlipped: boolean;
+    constructor(id?: string, options?: GeomodelLayerLabelsOptions);
+    onMount(event: OnMountEvent): void;
+    onUpdate(event: OnUpdateEvent): void;
+    onRescale(event: OnRescaleEvent): void;
+    render(): void;
+    drawAreaLabels(): void;
+    drawLineLabels(): void;
+    drawAreaLabel: (s: SurfaceArea) => void;
+    drawLineLabel: (s: SurfaceLine) => void;
+    colorToHexString(color: number): string;
+    calcPos(data: number[][], offset: number, count: number, step: number, topLimit?: number, bottomLimit?: number): Vector2;
+    calcLineDir(data: number[][], offset: number, count: number, step: number, zFactor: number, initalVector?: Vector2, topLimit?: number, bottomLimit?: number): Vector2;
+    calcAreaDir(top: number[][], bottom: number[][], offset: number, count: number, step: number, initalVector?: Vector2, topLimit?: number, bottomLimit?: number, thicknessThreshold?: number, scaleByThickness?: boolean): Vector2;
+    updateXFlipped(): void;
+    getMarginsInWorldCoordinates(): number;
+    getSurfacesAreaEdges(): number[];
+    checkDrawLabelsOnLeftSide(): boolean;
+}
