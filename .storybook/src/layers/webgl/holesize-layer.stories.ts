@@ -1,6 +1,6 @@
-import { HoleSizeLayer } from '../../../../src/layers/HoleSizeLayer';
+import { HoleSizeLayer, WellborepathLayer } from '../../../../src/layers';
 import { HoleSize, HoleSizeLayerOptions, OnRescaleEvent } from '../../../../src/interfaces';
-import { createRootContainer, createLayerContainer } from '../../utils';
+import { createRootContainer, createLayerContainer, createFPSLabel } from '../../utils';
 import { ZoomPanHandler } from '../../../../src/control/ZoomPanHandler';
 import { IntersectionReferenceSystem } from '../../../../src';
 
@@ -44,6 +44,7 @@ export const HoleSizeLayerWithSampleData = () => {
   const height: number = 1024;
   const root = createRootContainer(width);
   const container = createLayerContainer(width, height);
+  const fpsLabel = createFPSLabel();
 
   getWellborePath().then((data) => {
     const referenceSystem = new IntersectionReferenceSystem(data);
@@ -58,8 +59,12 @@ export const HoleSizeLayerWithSampleData = () => {
 
     holeSizeLayer.onUpdate({ elm: root, data: getSampleDataData() });
 
+    const wellboreLayer = new WellborepathLayer('wellborepath', { order: 3, strokeWidth: '2px', stroke: 'red', referenceSystem });
+    wellboreLayer.onMount({ elm: container, height, width });
+
     const zoomHandler = new ZoomPanHandler(root, (event: OnRescaleEvent) => {
       holeSizeLayer.onRescale(event);
+      wellboreLayer.onRescale(event);
     });
     zoomHandler.setBounds([0, 1000], [0, 1000]);
     zoomHandler.adjustToSize(width, height);
@@ -70,6 +75,7 @@ export const HoleSizeLayerWithSampleData = () => {
   });
 
   root.appendChild(container);
+  root.appendChild(fpsLabel);
 
   return root;
 };
