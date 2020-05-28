@@ -18,8 +18,10 @@ export const createNormalCoords = (s: HoleObjectData): NormalCoordsObject => {
   const normalOffsetCoordsDownOrig = createNormal(wellBorePathCoords, -s.data.diameter);
 
   if (normalOffsetCoordsUpOrig.length <= 2) {
+    console.log(`${wellBorePathCoords.length}`)
     return { wellBorePathCoords, normalOffsetCoordsDown: wellBorePathCoords, normalOffsetCoordsUp: wellBorePathCoords };
   }
+  console.log("#")
 
   const tension = 0.2;
   const numPoints = 999;

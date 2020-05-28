@@ -1,6 +1,6 @@
 import { HoleSizeLayer } from '../../../../src/layers/HoleSizeLayer';
 import { HoleSize, HoleSizeLayerOptions, OnRescaleEvent } from '../../../../src/interfaces';
-import { createRootContainer, createLayerContainer } from '../../utils';
+import { createRootContainer, createLayerContainer, createFPSLabel } from '../../utils';
 import { ZoomPanHandler } from '../../../../src/control/ZoomPanHandler';
 import { IntersectionReferenceSystem } from '../../../../src';
 
@@ -56,7 +56,6 @@ export const HoleSizeLayerWithSampleData = () => {
 
     holeSizeLayer.onMount({ elm: container, height, width });
 
-    holeSizeLayer.onUpdate({ elm: root, data: getSampleDataData() });
 
     const zoomHandler = new ZoomPanHandler(root, (event: OnRescaleEvent) => {
       holeSizeLayer.onRescale(event);
@@ -67,9 +66,21 @@ export const HoleSizeLayerWithSampleData = () => {
     zoomHandler.setTranslateBounds([-5000, 6000], [-5000, 6000]);
     zoomHandler.enableTranslateExtent = false;
     zoomHandler.setViewport(1000, 1000, 5000);
+
+    // refresh data every 10 ms
+    let regular = setInterval( () => {
+        holeSizeLayer.onUpdate({ elm: root, data: getSampleDataData() });
+      },
+      10);
+    // stop the data refresh after 10 secs (avoid overloading browser)
+    let oneshot = setTimeout( () => {
+        clearInterval(regular)
+      },
+      10*1e3);
   });
 
   root.appendChild(container);
+  root.appendChild(createFPSLabel());
 
   return root;
 };

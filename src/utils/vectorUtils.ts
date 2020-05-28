@@ -28,30 +28,53 @@ export const pointToArray = (p: Point): [number, number] => [p.x, p.y];
 export const arrayToPoint = (p: [number, number]): Point => new Point(p[0], p[1]);
 
 export const convertToUnitVector = (vector: Point): Point => {
-  const dist = calcDistPoint(new Point(0, 0), vector);
-  const div = 1 / dist;
+  const normSq = vector.x * vector.x + vector.y * vector.y;
+  if(normSq < 1e-12) 
+    return undefined;
+  const div = 1 / Math.sqrt(normSq);
   const unitVector = new Point(div * vector.x, div * vector.y);
   return unitVector;
 };
 
-export const createNormal = (coords: Point[], offset: number): Point[] => {
-  const newPoints: Point[] = [];
-  const nextToLastPointIndex = 2;
 
-  for (let i = 0; i < coords.length - nextToLastPointIndex; i++) {
-    const normalVec = convertToUnitVector(calcNormal(coords[i], coords[i + 1]));
+export const computeNormals = (curve: Point[]): Point[] => {
+  // NOTE: we assume adjacent points are not overlapped
+  if(curve.length < 2) 
+     return undefined;
+  const normals: Point[] = [];
+  normals.push(convertToUnitVector(calcNormal(curve[0], curve[1])));
 
-    const newPoint = coords[i].clone();
-    newPoint.x += normalVec.x * offset;
-    newPoint.y += normalVec.y * offset;
-    newPoints.push(newPoint);
+  // First pass: compute normals for each segment
+  for(let i = 1; i < curve.length; i++) {
+    normals.push(convertToUnitVector(calcNormal(curve[i-1], curve[i])));
   }
-  if (coords.length > nextToLastPointIndex) {
-    const lastPoint = convertToUnitVector(calcNormal(coords[coords.length - nextToLastPointIndex - 1], coords[coords.length - nextToLastPointIndex]));
-    const newPoint = coords[coords.length - nextToLastPointIndex].clone();
-    newPoint.x += lastPoint.x * offset;
-    newPoint.y += lastPoint.y * offset;
-    newPoints.push(newPoint);
+
+  // Second pass: average normals on consecutive segments
+  for(let i = 1; i < curve.length - 1; i++) {
+    normals[i].x = 0.5 * (normals[i].x + normals[i+1].x);
+    normals[i].y = 0.5 * (normals[i].y + normals[i+1].y);
+    normals[i] = convertToUnitVector(normals[i]);
+  }
+
+  return normals;
+}
+
+
+export const displace = (points: Point[], vectors: Point[], scale: number): Point[] => {
+  const newPoints: Point[] = [];
+  const num = Math.min(points.length, vectors.length);
+  for(let i = 0; i < num; i++) {
+    const p = points[i].clone();
+    p.x += vectors[i].x * scale;
+    p.y += vectors[i].y * scale;
+    newPoints.push(p);
   }
   return newPoints;
+}
+
+
+export const createNormal = (coords: Point[], offset: number): Point[] => {
+  // The name is very misleading
+  // This mathod is left here just for backward compatibility for now
+  return displace(coords, computeNormals(coords), offset)
 };

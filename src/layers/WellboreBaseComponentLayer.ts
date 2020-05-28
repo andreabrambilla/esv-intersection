@@ -97,14 +97,64 @@ export class WellboreBaseComponentLayer extends PixiLayer {
   };
 
   generateHoleSizeData = (data: HoleSize | Casing): HoleObjectData => {
-    const points: any = [];
 
-    // Add distance to points
-    for (let i = data.start; i < data.start + data.length; i += StaticWellboreBaseComponentIncrement) {
-      const p = this.referenceSystem.project(i);
-      points.push({ point: new Point(p[0], p[1]), md: i });
+    const points: any = [];
+    for (let i = data.start; i < data.start + data.length; 
+            i += StaticWellboreBaseComponentIncrement) {
+        const p = this.referenceSystem.project(i);
+        points.push({ point: new Point(p[0], p[1]), md: i });
+    }
+    return { data: { ...data, diameter: data.diameter }, 
+             points, 
+             hasShoe: data.hasShoe, 
+             innerDiameter: data.innerDiameter };
+
+    // TODO: the starting point need to be the set of points where there is a change in size!
+/*
+    let samples: any = []
+    samples.push({ arclength: data.start, 
+                   point: this.referenceSystem.project(data.start)})
+
+    // Somewhere downstream at least 3 points are required along the curve
+    // so add also the mid point )as a temporary workaround
+    samples.push({ arclength: data.start + 0.5 * data.length,
+                   point: this.referenceSystem.project(data.start + 0.5 * data.length)})
+
+    samples.push({ arclength: data.start + data.length,
+                   point: this.referenceSystem.project(data.start + data.length)})
+
+    // Loop for refining
+    let i = 0
+    const eps_squared = 2*2 // TODO: play around with this value
+    while(i+1 < samples.length) {
+        const al_mid = 0.5 * (samples[i].arclength + samples[i+1].arclength)
+        const mid = {arclength: al_mid, point: this.referenceSystem.project(al_mid)}
+        const avg = [0.5 * (samples[i].point[0] + samples[i+1].point[0]), 
+                     0.5 * (samples[i].point[1] + samples[i+1].point[1])]
+        const dx = mid.point[0] - avg[0]
+        const dy = mid.point[1] - avg[1]
+        const dsquared = dx*dx + dy*dy
+        if(dx*dx + dy*dy > eps_squared) {
+            // need to refine, add mid to the list and repeat
+            samples.splice(i+1, 0, mid)
+        } 
+        else {
+            // no need to refine, move on to the next point
+            i++
+        }
     }
 
-    return { data: { ...data, diameter: data.diameter }, points, hasShoe: data.hasShoe, innerDiameter: data.innerDiameter };
+    // extract points only
+    const points: any = [];
+    for (i = 0; i < samples.length; i++) {
+      const { arclength, point } = samples[i]
+      points.push({ point: new Point(point[0], point[1]), 
+                    md: arclength
+                  });
+    }
+
+    const out = { data: { ...data, diameter: data.diameter }, points, hasShoe: data.hasShoe, innerDiameter: data.innerDiameter };
+
+    return out; */
   };
 }
